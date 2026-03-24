@@ -69,21 +69,17 @@ def main():
 
     logging.info(f"Run Timestamp: {run_timestamp}")
 
-    # 2. Load data
+    # 4. Load data
     logging.info("Loading data...")
     train_df_raw = pd.read_csv(cfg['data']['train_path'])
     test_df_raw = pd.read_csv(cfg['data']['test_path'])
     train_ids = train_df_raw[cfg['data']['id_column']] 
     test_ids = test_df_raw[cfg['data']['id_column']]
 
-    # 3. Prepare dataframes for the pipeline
+    # 5. Prepare dataframes for the pipeline
     logging.info("Preparing dataframes...")
     train_df = train_df_raw.copy()
     test_df = test_df_raw.copy()
-    
-    # Standardize column names to lowercase to match the schema
-    train_df.columns = train_df.columns.str.lower()
-    test_df.columns = test_df.columns.str.lower()
 
     schema = get_feature_schema()
     target_col = schema['target']
@@ -98,7 +94,7 @@ def main():
     # Align columns to prevent errors during prediction
     X_test = X_test[X_train.columns]
 
-    # 4. Initialize and run the pipeline
+    # 6. Initialize and run the pipeline
     logging.info("Initializing and running the ModelerPipeline.")
     schema = get_feature_schema()
     pipeline = ModelerPipeline(cfg, schema=schema, make_preprocessor_func=make_preprocessor)
