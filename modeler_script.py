@@ -378,10 +378,8 @@ class ModelerPipeline:
 
         self.final_model.fit(self.X_train, self.y_train_encoded)
         predictions_encoded = self.final_model.predict(self.X_test)
-        
-        predictions_original = self.label_encoder.inverse_transform(predictions_encoded)
 
-        submission_df = pd.DataFrame({'id': self.test_ids, self.cfg['data']['target_column']: predictions_original})
+        submission_df = pd.DataFrame({'id': self.test_ids, self.cfg['data']['target_column']: predictions_encoded.astype(int)})
         sub_path = self.cfg['outputs']['submission_file']
         submission_df.to_csv(sub_path, index=False)
         
