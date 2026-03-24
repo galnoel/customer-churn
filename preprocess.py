@@ -307,9 +307,8 @@ def get_feature_schema() -> Dict[str, Any]:
             "TotalCharges"
         ],
 
-        # For your custom BinaryMapTransformer
-        # Note: I added SeniorCitizen here just to ensure it stays an integer, 
-        # even though it's already 1 and 0 in the raw data.
+        # Maps text binary columns to 1 and 0. 
+        # SeniorCitizen is already int64 (0 and 1), but adding it here safely passes it through.
         "binary_map": {
             "gender": {"female": 1, "male": 0},
             "Partner": {"yes": 1, "no": 0},
@@ -319,7 +318,7 @@ def get_feature_schema() -> Dict[str, Any]:
             "SeniorCitizen": {"1": 1, "0": 0} 
         },
 
-        # Features with 3+ text categories that need One-Hot Encoding
+        # Features with 3+ categories from your EDA that need One-Hot Encoding
         "categorical_nominal": [
             "MultipleLines", 
             "InternetService", 
@@ -333,14 +332,12 @@ def get_feature_schema() -> Dict[str, Any]:
             "PaymentMethod"
         ],
 
-        # No strict ordinal columns in the basic telecom churn dataset
         "categorical_ordinal": {},
 
         "drop": ["id"],
         "target": "Churn",
 
-        # Optional: Cap the top 1% of TotalCharges so ultra-long tenure 
-        # customers don't skew your distance-based models (like KNN/Logistic Regression)
+        # Caps extreme outliers in charges
         "capping": {
             "domain_bounds": {},
             "quantile": {
@@ -350,11 +347,9 @@ def get_feature_schema() -> Dict[str, Any]:
             },
         },
 
-        # ==== DERIVED DECLARATIONS ====
-        # Let's put your generic expression engine to work!
+        # Automatically engineers new features
         "derived": [
             {
-                # Creates a new feature converting months to years
                 "name": "tenure_years",
                 "expr": "`tenure` / 12.0",
                 "requires": ["tenure"],
@@ -362,8 +357,6 @@ def get_feature_schema() -> Dict[str, Any]:
                 "on_missing": "skip"
             },
             {
-                # Checks if the customer is paying more than their base monthly rate 
-                # (e.g., did they get hit with extra usage fees this month?)
                 "name": "monthly_vs_average",
                 "expr": "`MonthlyCharges` - (`TotalCharges` / `tenure`)",
                 "requires": ["MonthlyCharges", "TotalCharges", "tenure"],
@@ -372,7 +365,7 @@ def get_feature_schema() -> Dict[str, Any]:
             }
         ],
         
-        # Optional: ensure all text in these columns is lowercase before OHE to prevent duplicates
+        # Ensures text matching works flawlessly
         "lowercase_value_cols": [
             "MultipleLines", "InternetService", "OnlineSecurity", "OnlineBackup", 
             "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies", 
@@ -380,7 +373,6 @@ def get_feature_schema() -> Dict[str, Any]:
         ]
     }
 
-    # Add derived numeric features to the numeric list so they get scaled/imputed
     derived_numeric = [d["name"] for d in s.get("derived", []) if d.get("type") == "numeric"]
     s["numeric"] = list(s.get("numeric", [])) + derived_numeric
     return s
@@ -464,7 +456,7 @@ def make_preprocessor(
     ord_cols = list(ord_map.keys())
     nom_cols = list(schema.get("categorical_nominal", []))
     lower_cols = list(schema.get("lowercase_value_cols", []))
-
+    
     cap_cfg = (schema.get("capping") or {}) if use_capping else {}
     domain_bounds: Dict[str, Tuple[float, float]] = cap_cfg.get("domain_bounds", {})
     q_cfg: Dict[str, Any] = cap_cfg.get("quantile", {}) or {}
