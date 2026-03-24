@@ -1,0 +1,52 @@
+# ----------------------------------------------------
+# Configuration for the Machine Learning Pipeline
+# ----------------------------------------------------
+
+workflow:
+  run_mode: "full"  # Options: "full" or "baseline_only"
+
+# File paths
+data:
+  train_path: "data/train.csv"
+  test_path: "data/test.csv"
+  target_column: "Target" # Use lowercase to match preprocessing
+  id_column: "id"
+
+# Parameters for modeling
+pipeline_params:
+  n_folds: 5
+  n_iter_search: 15 # Iterations for RandomizedSearchCV
+  
+  tuner: "random_search"  # Options: "random_search" or "optuna"
+  n_trials_optuna: 3  # Number of trials for Optuna tuning
+  scoring_metric: "f1_macro" # Options: "f1_macro", "accuracy", etc.
+    
+  data_is_preprocessed: false # <-- ADD THIS LINE
+
+
+# Output paths for saved artifacts
+
+outputs:
+  base_dir: "outputs"  # Defines the main outputs folder
+  
+  # --- UPDATE ALL PATHS TO USE A RUN FOLDER PLACEHOLDER ---
+  log_file: "{run_folder}/pipeline_run.log"
+  submission_file: "{run_folder}/submission.csv"
+  model_path: "{run_folder}/model.joblib"
+  label_encoder_path: "{run_folder}/label_encoder.joblib"
+  report_path: "{run_folder}/report.pkl"
+  feature_importance_path: "{run_folder}/feature_importance.csv"
+  feature_importance_plot_path: "{run_folder}/feature_importance.png"
+  confusion_matrix_plot_path: "{run_folder}/confusion_matrix.png"
+  oof_file: "{run_folder}/oof.csv"
+
+
+# outputs:
+#   log_file: "outputs/artifacts/pipeline_run_{timestamp}.log"
+#   submission_file: "outputs/artifacts/submissions/submission_{timestamp}.csv"
+#   model_path: "outputs/artifacts/final_ensemble_model_{timestamp}.joblib"
+#   label_encoder_path: "outputs/artifacts/label_encoder_{timestamp}.joblib"
+#   report_path: "outputs/artifacts/performance_report_{timestamp}.pkl"
+#   feature_importance_path: "outputs/artifacts/feature_importance_{timestamp}.csv"
+#   feature_importance_plot_path: "outputs/visualizations/feature_importance_{timestamp}.png"
+#   confusion_matrix_plot_path: "outputs/visualizations/confusion_matrix_{timestamp}.png"
